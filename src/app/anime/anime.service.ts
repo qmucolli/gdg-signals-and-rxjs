@@ -13,7 +13,7 @@ export class AnimeService {
   );
 
   public searchAnime(query: string | undefined): Observable<Anime[]> {
-    return this.animeRpcService.getTopAnime().pipe(
+    return this.anime$.pipe(
       map((anime) => anime.filter(val => val.title.toLowerCase().includes(query?.toLowerCase() || ''))),
       take(1),
     );
