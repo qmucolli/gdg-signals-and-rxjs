@@ -28,7 +28,7 @@ export class AnimeRpcService {
   private readonly JIKAN_API_URL = 'https://api.jikan.moe/v4';
 
   public getTopAnime(): Observable<Anime[]> {
-    return this.http.get<JikanResponse>(`${this.JIKAN_API_URL}/top/anime`).pipe(
+    return this.http.get<JikanResponse>(`${this.JIKAN_API_URL}/anime`).pipe(
       // The API wraps the array in a 'data' property, so we extract it
       map(response => response.data),
       delay(1000)

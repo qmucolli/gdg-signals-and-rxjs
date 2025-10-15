@@ -1,9 +1,10 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {Anime, AnimeRpcService} from '../rpc/anime-rpc.service';
+import {Component, inject} from '@angular/core';
+import {Anime} from '../rpc/anime-rpc.service';
 import {AnimeDetailComponent} from './detail/anime-detail.component';
-import {AsyncPipe, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import {debounceTime, distinctUntilChanged, Subject, switchMap} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AnimeService} from './anime.service';
 
 @Component({
   selector: 'app-anime',
@@ -13,26 +14,22 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
     AnimeDetailComponent,
     AsyncPipe,
   ],
+  providers: [AnimeService],
   standalone: true
 })
-export class AnimeComponent implements OnInit {
+export class AnimeComponent {
+  private readonly animeService = inject(AnimeService);
 
   public searchTerm$ = new Subject<string | undefined>();
-  public animeList: Anime[] | undefined;
   public selectedAnime: Anime | undefined;
 
   public searchResults$ = this.searchTerm$.pipe(
     debounceTime(300),
     distinctUntilChanged(),
-    switchMap(term => this.animeRpcService.searchAnime(term)),
+    switchMap(term => this.animeService.searchAnime(term)),
     takeUntilDestroyed(),
   );
-
-  private animeRpcService = inject(AnimeRpcService);
-
-  public ngOnInit() {
-    this.animeRpcService.getTopAnime().subscribe((animeList) => this.animeList = animeList);
-  }
+  public animeList$ = this.animeService.anime$;
 
   public selectAnime(anime: Anime) {
     this.selectedAnime = anime;
