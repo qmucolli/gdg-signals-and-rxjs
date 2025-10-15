@@ -1,9 +1,8 @@
-import {Component, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
 import {Anime} from '../rpc/anime-rpc.service';
 import {AnimeDetailComponent} from './detail/anime-detail.component';
-import {AsyncPipe} from '@angular/common';
-import {debounceTime, distinctUntilChanged, Subject, switchMap} from 'rxjs';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs';
+import {takeUntilDestroyed, toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {AnimeService} from './anime.service';
 
 @Component({
@@ -12,34 +11,35 @@ import {AnimeService} from './anime.service';
   styleUrl: './anime.component.scss',
   imports: [
     AnimeDetailComponent,
-    AsyncPipe,
   ],
   providers: [AnimeService],
-  standalone: true
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AnimeComponent {
   private readonly animeService = inject(AnimeService);
 
-  public searchTerm$ = new Subject<string | undefined>();
-  public selectedAnime: Anime | undefined;
+  public searchTerm = signal('');
+  public selectedAnime = signal<Anime | undefined>(undefined);
 
-  public searchResults$ = this.searchTerm$.pipe(
+  public searchResults$ = toObservable(this.searchTerm).pipe(
     debounceTime(300),
     distinctUntilChanged(),
     switchMap(term => this.animeService.searchAnime(term)),
     takeUntilDestroyed(),
   );
-  public animeList$ = this.animeService.anime$;
+  public animeList = toSignal(this.animeService.anime$, {initialValue: []});
+  public searchResults = toSignal(this.searchResults$, {initialValue: []});
 
   public selectAnime(anime: Anime) {
-    this.selectedAnime = anime;
+    this.selectedAnime.set(anime);
   }
 
   public onSearch(input: string): void {
-    this.searchTerm$.next(input);
+    this.searchTerm.set(input);
   }
 
   public clearSelectedAnime() {
-    this.selectedAnime = undefined;
+    this.selectedAnime.set(undefined);
   }
 }
