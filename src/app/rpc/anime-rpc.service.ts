@@ -40,18 +40,9 @@ export class AnimeRpcService {
    * @param query The search term (e.g., "naruto", "one piece").
    */
   public searchAnime(query: string | undefined): Observable<Anime[]> {
-    // If the search query is empty, return an empty array immediately
-    // to avoid making an unnecessary API call.
-    if (!query || !query.trim()) {
-      return of([]); // 'of' creates an Observable that emits the value and completes.
-    }
-
-    // Using HttpParams is the recommended way to add URL parameters.
-    // It automatically handles URL encoding for special characters.
-    const params = new HttpParams().set('q', query);
-
-    return this.http.get<JikanResponse>(`${this.JIKAN_API_URL}/anime`, { params }).pipe(
-      map(response => response.data)
+    return this.http.get<JikanResponse>(`${this.JIKAN_API_URL}/top/anime`).pipe(
+      map(response => response.data as Anime[]),
+      map(anime => anime.filter(a => a.title.toLowerCase().includes(query?.toLowerCase() || ''))),
     );
   }
 }
