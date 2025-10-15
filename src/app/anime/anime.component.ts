@@ -1,48 +1,43 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {Anime, AnimeRpcService} from '../rpc/anime-rpc.service';
+import {ChangeDetectionStrategy, Component, inject, signal} from '@angular/core';
+import {Anime} from '../rpc/anime-rpc.service';
 import {AnimeDetailComponent} from './detail/anime-detail.component';
-import {AsyncPipe, NgOptimizedImage} from '@angular/common';
-import {debounceTime, distinctUntilChanged, Subject, switchMap} from 'rxjs';
-import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs';
+import {takeUntilDestroyed, toObservable, toSignal} from '@angular/core/rxjs-interop';
+import {AnimeService} from './anime.service';
 
 @Component({
   selector: 'app-anime',
   templateUrl: './anime.component.html',
   styleUrl: './anime.component.scss',
-  imports: [
-    AnimeDetailComponent,
-    AsyncPipe,
-  ],
-  standalone: true
+  imports: [AnimeDetailComponent],
+  standalone: true,
+  providers: [AnimeService],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AnimeComponent implements OnInit {
+export class AnimeComponent {
+  private readonly animeService = inject(AnimeService);
 
-  public searchTerm$ = new Subject<string | undefined>();
-  public animeList: Anime[] | undefined;
-  public selectedAnime: Anime | undefined;
+  public readonly searchTerm = signal<string | undefined>('');
+  public readonly selectedAnime = signal<Anime | undefined>(undefined);
+  public readonly animeList = toSignal(this.animeService.anime$);
 
-  public searchResults$ = this.searchTerm$.pipe(
+  public searchResults$ = toObservable(this.searchTerm).pipe(
     debounceTime(300),
     distinctUntilChanged(),
-    switchMap(term => this.animeRpcService.searchAnime(term)),
+    switchMap(term => this.animeService.searchAnime(term)),
     takeUntilDestroyed(),
   );
-
-  private animeRpcService = inject(AnimeRpcService);
-
-  public ngOnInit() {
-    this.animeRpcService.getTopAnime().subscribe((animeList) => this.animeList = animeList);
-  }
+  public searchResults = toSignal(this.searchResults$, {initialValue: []});
 
   public selectAnime(anime: Anime) {
-    this.selectedAnime = anime;
+    this.selectedAnime.set(anime);
   }
 
   public onSearch(input: string): void {
-    this.searchTerm$.next(input);
+    this.searchTerm.set(input);
   }
 
   public clearSelectedAnime() {
-    this.selectedAnime = undefined;
+    this.selectedAnime.set(undefined);
   }
 }
