@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
 import {Anime} from '../rpc/anime-rpc.service';
 import {AnimeDetailComponent} from './detail/anime-detail.component';
 import {AsyncPipe} from '@angular/common';
@@ -15,7 +15,8 @@ import {AnimeService} from './anime.service';
     AsyncPipe,
   ],
   providers: [AnimeService],
-  standalone: true
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AnimeComponent {
   private readonly animeService = inject(AnimeService);
