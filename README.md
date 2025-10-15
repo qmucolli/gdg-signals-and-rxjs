@@ -34,7 +34,7 @@ The workshop is divided into three main sections:
 ## Important disclaimers
 - This workshop is intended for educational purposes only.
 - The code provided in this repository is a starting point and may require further customization based on your specific use cases.
-- This code may not follow all best for component design and architecture practices as it is meant for demonstration purposes only.
+- This code may not follow all best practices for component design and architecture as it is meant for demonstration purposes only.
 
 ## Resources
 - [Angular Signals Documentation](https://angular.io/guide/signals)
